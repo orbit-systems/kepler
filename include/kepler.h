@@ -49,7 +49,6 @@ typedef struct {
     instr_data_t data;
     encoding_t enc;
     uint8_t opcode;
-    uint8_t flags;
 } instr_t;
 
 void decode(uint32_t instr, instr_t* decoded);

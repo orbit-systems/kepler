@@ -4,13 +4,7 @@
 
 
 const encoding_t encoding[256] = {
-    #define _instr(name, op, func, enc, flags) [op] = enc,
-    INSTRUCTION_LIST
-    #undef _instr
-};
-
-const uint8_t flags[] = {
-    #define _instr(name, op, func, enc, flags) [op << 4 | func] = flags,
+    #define _instr(name, op, func, enc, argfmt, arge) [op] = enc,
     INSTRUCTION_LIST
     #undef _instr
 };
@@ -31,7 +25,6 @@ void decode(uint32_t instr, instr_t* decoded) {
                 decoded->data.r.rs2 = rs2;
                 decoded->data.r.rs1 = rs1;
                 decoded->data.r.rde = rde;
-                decoded->flags = flags[opcode << 4 | 0x00];
             }
             break;
         case enc_M:
@@ -42,7 +35,6 @@ void decode(uint32_t instr, instr_t* decoded) {
                 decoded->data.m.imm = imm;
                 decoded->data.m.rs1 = rs1;
                 decoded->data.m.rde = rde;
-                decoded->flags = flags[opcode << 4 | 0x00];
             }
             break;
         case enc_F:
@@ -53,7 +45,6 @@ void decode(uint32_t instr, instr_t* decoded) {
                 decoded->data.f.imm = imm;
                 decoded->data.f.func = func;
                 decoded->data.f.rde = rde;
-                decoded->flags = flags[opcode << 4 | func];
             }
             break;
         case enc_B:
@@ -62,7 +53,6 @@ void decode(uint32_t instr, instr_t* decoded) {
                 uint8_t func = (instr >> 28) & 0x0F;
                 decoded->data.b.imm = imm;
                 decoded->data.b.func = func;
-                decoded->flags = flags[opcode << 4 | func];
             }
             break;
     }

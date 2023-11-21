@@ -1,6 +1,5 @@
 #include "../include/kepler.h"
 #include "instructions.h"
-#include <stdio.h>
 
 void printM(instr_t* instr);
 void printB(instr_t* instr);
@@ -51,31 +50,140 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+typedef struct {
+    const char* fmt;
+    arg_enc_t arge;
+} print_info_t;
+
+const print_info_t infos[] = {
+    #define _instr(name, op, func, enc, argfmt, arge) [op << 4 | func] = {argfmt, arge},
+    INSTRUCTION_LIST
+    #undef _instr
+};
+
 void printB(instr_t* instr) {
-    if (!(instr->flags & IGNORE_IMM))
-        printf(" %d", instr->data.b.imm);
+    print_info_t info = infos[instr->opcode << 4 | instr->data.b.func];
+    arg_enc_t arge = info.arge;
+    switch (arge) {
+        case ARGE_IMM:
+            printf(info.fmt, instr->data.b.imm);
+            break;
+        default:
+            break;
+    }
 }
+
 void printM(instr_t* instr) {
-    if (!(instr->flags & IGNORE_RDE))
-        printf(" %s", regname(instr->data.m.rde));
-    if (!(instr->flags & IGNORE_RS1))
-        printf(" %s", regname(instr->data.m.rs1));
-    if (!(instr->flags & IGNORE_IMM))
-        printf(" %d", instr->data.m.imm);
+    print_info_t info = infos[instr->opcode << 4 | 0x00];
+    arg_enc_t arge = info.arge;
+    data_M data = instr->data.m;
+    switch (arge) {
+        case ARGE_IMM:
+            printf(info.fmt, data.imm);
+            break;
+        case ARGE_RDE:
+            printf(info.fmt, regname(data.rde));
+            break;
+        case ARGE_RS1:
+            printf(info.fmt, regname(data.rs1));
+            break;
+        case ARGE_IMM_RS1:
+            printf(info.fmt, data.imm, regname(data.rs1));
+            break;
+        case ARGE_RDE_IMM:
+            printf(info.fmt, regname(data.rde), data.imm);
+            break;
+        case ARGE_RDE_RS1:
+            printf(info.fmt, regname(data.rde), regname(data.rs1));
+            break;
+        case ARGE_RS1_IMM:
+            printf(info.fmt, regname(data.rs1), data.imm);
+            break;
+        case ARGE_RS1_RDE:
+            printf(info.fmt, regname(data.rs1), regname(data.rde));
+            break;
+        case ARGE_IMM_RDE:
+            printf(info.fmt, data.imm, regname(data.rde));
+            break;
+        case ARGE_RDE_RS1_IMM:
+            printf(info.fmt, regname(data.rde), regname(data.rs1), data.imm);
+            break;
+        case ARGE_RS1_IMM_RDE:
+            printf(info.fmt, regname(data.rs1), data.imm, regname(data.rde));
+            break;
+        default:
+            break;
+    }
 }
+
 void printF(instr_t* instr) {
-    if (!(instr->flags & IGNORE_RDE))
-        printf(" %s", regname(instr->data.f.rde));
-    if (!(instr->flags & IGNORE_IMM))
-        printf(" %d", instr->data.f.imm);
+    print_info_t info = infos[instr->opcode << 4 | instr->data.f.func];
+    arg_enc_t arge = info.arge;
+    data_F data = instr->data.f;
+    switch (arge) {
+        case ARGE_IMM:
+            printf(info.fmt, data.imm);
+            break;
+        case ARGE_RDE:
+            printf(info.fmt, regname(data.rde));
+        case ARGE_IMM_RDE:
+            printf(info.fmt, data.imm, regname(data.rde));
+            break;
+        case ARGE_RDE_IMM:
+            printf(info.fmt, regname(data.rde), data.imm);
+        default:
+            break;
+    }
 }
+
 void printR(instr_t* instr) {
-    if (!(instr->flags & IGNORE_RDE))
-        printf(" %s", regname(instr->data.r.rde));
-    if (!(instr->flags & IGNORE_RS1))
-        printf(" %s", regname(instr->data.r.rs1));
-    if (!(instr->flags & IGNORE_RS2))
-        printf(" %s", regname(instr->data.r.rs2));
-    if (!(instr->flags & IGNORE_IMM))
-        printf(" %d", instr->data.r.imm);
+    print_info_t info = infos[instr->opcode << 4 | 0x00];
+    arg_enc_t arge = info.arge;
+    data_R data = instr->data.r;
+    switch (arge) {
+        case ARGE_NON:
+            break;
+        case ARGE_IMM:
+            printf(info.fmt, data.imm);
+            break;
+        case ARGE_RDE:
+            printf(info.fmt, regname(data.rde));
+            break;
+        case ARGE_RS1:
+            printf(info.fmt, regname(data.rs1));
+            break;
+        case ARGE_RS2:
+            printf(info.fmt, regname(data.rs2));
+            break;
+        case ARGE_IMM_RS1:
+            printf(info.fmt, data.imm, regname(data.rs1));
+            break;
+        case ARGE_RDE_IMM:
+            printf(info.fmt, regname(data.rde), data.imm);
+            break;
+        case ARGE_RDE_RS1:
+            printf(info.fmt, regname(data.rde), regname(data.rs1));
+            break;
+        case ARGE_RS1_IMM:
+            printf(info.fmt, regname(data.rs1), data.imm);
+            break;
+        case ARGE_RS1_RDE:
+            printf(info.fmt, regname(data.rs1), regname(data.rde));
+            break;
+        case ARGE_RS1_RS2:
+            printf(info.fmt, regname(data.rs1), regname(data.rs2));
+            break;
+        case ARGE_IMM_RDE:
+            printf(info.fmt, data.imm, regname(data.rde));
+            break;
+        case ARGE_RDE_RS1_IMM:
+            printf(info.fmt, regname(data.rde), regname(data.rs1), data.imm);
+            break;
+        case ARGE_RS1_IMM_RDE:
+            printf(info.fmt, regname(data.rs1), data.imm, regname(data.rde));
+            break;
+        case ARGE_RDE_RS1_RS2:
+            printf(info.fmt, regname(data.rde), regname(data.rs1), regname(data.rs2));
+            break;
+    }
 }

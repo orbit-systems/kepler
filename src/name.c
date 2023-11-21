@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 const char* ins_name[] = {
-    #define _instr(name, op, func, enc, flags) [op << 4 | func] = name,
+    #define _instr(name, op, func, enc, argfmt, arge) [op << 4 | func] = name,
     INSTRUCTION_LIST
     #undef _instr
 };
